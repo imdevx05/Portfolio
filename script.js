@@ -1,4 +1,4 @@
-```javascript
+//javascript
 document.addEventListener("DOMContentLoaded", () => {
     // =========================
     // MOBILE NAVIGATION
@@ -228,4 +228,4 @@ document.addEventListener("DOMContentLoaded", () => {
         yearElement.textContent = new Date().getFullYear();
     }
 });
-```
+
