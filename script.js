@@ -181,7 +181,7 @@ document.addEventListener("DOMContentLoaded", () => {
         const message = formData.get("message").trim();
 
         // Replace this with your real email address
-        const recipient = "your.email@example.com";
+        const recipient = "heroxhonattackz20@gmail.com";
 
         const emailSubject = encodeURIComponent(
             `${subject} — from ${name}`
