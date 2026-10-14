@@ -1,131 +1,137 @@
-
-/* ==============================
-   VERN PORTFOLIO - INTERACTIONS
-================================= */
-
+```javascript
 document.addEventListener("DOMContentLoaded", () => {
-    const header = document.querySelector(".header");
+    // =========================
+    // MOBILE NAVIGATION
+    // =========================
+
     const menuToggle = document.getElementById("menu-toggle");
     const navLinks = document.getElementById("nav-links");
     const navItems = document.querySelectorAll(".nav-link");
-    const backToTop = document.getElementById("back-to-top");
-    const typingText = document.getElementById("typing-text");
-    const contactForm = document.getElementById("contact-form");
-    const formStatus = document.getElementById("form-status");
 
-    // Current year in footer
-    document.getElementById("year").textContent =
-        new Date().getFullYear();
-
-    // Mobile navigation
     function closeMenu() {
-        menuToggle.classList.remove("open");
         navLinks.classList.remove("open");
         menuToggle.setAttribute("aria-expanded", "false");
         menuToggle.setAttribute("aria-label", "Open navigation menu");
     }
 
     menuToggle.addEventListener("click", () => {
-        const isOpen = navLinks.classList.toggle("open");
+        const isOpen = menuToggle.getAttribute("aria-expanded") === "true";
 
-        menuToggle.classList.toggle("open", isOpen);
-        menuToggle.setAttribute("aria-expanded", String(isOpen));
+        menuToggle.setAttribute("aria-expanded", String(!isOpen));
         menuToggle.setAttribute(
             "aria-label",
-            isOpen ? "Close navigation menu" : "Open navigation menu"
+            isOpen ? "Open navigation menu" : "Close navigation menu"
         );
+
+        navLinks.classList.toggle("open", !isOpen);
     });
 
     navItems.forEach((link) => {
         link.addEventListener("click", closeMenu);
     });
 
-    // Close mobile navigation with Escape
+    document.addEventListener("click", (event) => {
+        if (
+            !navLinks.contains(event.target) &&
+            !menuToggle.contains(event.target)
+        ) {
+            closeMenu();
+        }
+    });
+
     document.addEventListener("keydown", (event) => {
         if (event.key === "Escape") {
             closeMenu();
         }
     });
 
-    // Header shadow and back-to-top button
-    function handleScroll() {
-        const scrolled = window.scrollY > 30;
+    // =========================
+    // TYPING EFFECT
+    // =========================
 
-        header.classList.toggle("scrolled", scrolled);
-        backToTop.classList.toggle("visible", window.scrollY > 450);
-    }
+    const typingElement = document.getElementById("typing-text");
 
-    window.addEventListener("scroll", handleScroll, { passive: true });
-    handleScroll();
+    const words = [
+        "Web Developer",
+        "Creative Thinker",
+        "Website Builder",
+        "Lifelong Learner"
+    ];
 
-    // Back to top
-    backToTop.addEventListener("click", () => {
-        window.scrollTo({
-            top: 0,
-            behavior: window.matchMedia(
-                "(prefers-reduced-motion: reduce)"
-            ).matches ? "auto" : "smooth"
-        });
-    });
-
-    // Typing effect
-    const words = ["web.", "ideas.", "experiences.", "the future."];
-    let wordIndex = 0;
-    let characterIndex = 0;
-    let deleting = false;
-
-    const reducedMotion = window.matchMedia(
+    const reduceMotion = window.matchMedia(
         "(prefers-reduced-motion: reduce)"
     ).matches;
 
-    if (reducedMotion) {
-        typingText.textContent = "web.";
-    } else {
+    if (typingElement && !reduceMotion) {
+        let wordIndex = 0;
+        let characterIndex = words[0].length;
+        let deleting = true;
+
         function typeEffect() {
             const currentWord = words[wordIndex];
 
             if (deleting) {
                 characterIndex--;
+
+                typingElement.textContent = currentWord.slice(
+                    0,
+                    Math.max(0, characterIndex)
+                );
+
+                if (characterIndex <= 0) {
+                    deleting = false;
+                    wordIndex = (wordIndex + 1) % words.length;
+
+                    setTimeout(typeEffect, 350);
+                    return;
+                }
+
+                setTimeout(typeEffect, 45);
             } else {
+                const nextWord = words[wordIndex];
                 characterIndex++;
+
+                typingElement.textContent = nextWord.slice(
+                    0,
+                    characterIndex
+                );
+
+                if (characterIndex >= nextWord.length) {
+                    deleting = true;
+                    setTimeout(typeEffect, 1700);
+                    return;
+                }
+
+                setTimeout(typeEffect, 85);
             }
-
-            typingText.textContent = currentWord.slice(
-                0,
-                characterIndex
-            );
-
-            let delay = deleting ? 55 : 105;
-
-            if (!deleting && characterIndex === currentWord.length) {
-                deleting = true;
-                delay = 1300;
-            } else if (deleting && characterIndex === 0) {
-                deleting = false;
-                wordIndex = (wordIndex + 1) % words.length;
-                delay = 350;
-            }
-
-            window.setTimeout(typeEffect, delay);
         }
 
-        typeEffect();
+        setTimeout(typeEffect, 1700);
     }
 
-    // Reveal elements as they enter the viewport
+    // =========================
+    // REPEATING SCROLL ANIMATIONS
+    // =========================
+
     const revealElements = document.querySelectorAll(".reveal");
 
-    if ("IntersectionObserver" in window && !reducedMotion) {
+    if ("IntersectionObserver" in window && !reduceMotion) {
         const revealObserver = new IntersectionObserver(
-            (entries, observer) => {
+            (entries) => {
                 entries.forEach((entry) => {
                     if (entry.isIntersecting) {
                         entry.target.classList.add("visible");
-                        observer.unobserve(entry.target);
+                    } else {
+                        // Remove the class so the animation can replay
+                        // when the user scrolls back to this element.
+                        entry.target.classList.remove("visible");
                     }
                 });
             },
-            { threshold: 0.12 }
+            {
+                threshold: 0.12,
+                rootMargin: "0px 0px -35px 0px"
+            }
         );
 
         revealElements.forEach((element) => {
@@ -137,7 +143,10 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     }
 
-    // Highlight the navigation link for the visible section
+    // =========================
+    // ACTIVE NAVIGATION ON SCROLL
+    // =========================
+
     const sections = document.querySelectorAll("main section[id]");
 
     if ("IntersectionObserver" in window) {
@@ -156,7 +165,8 @@ document.addEventListener("DOMContentLoaded", () => {
                 });
             },
             {
-                rootMargin: "-25% 0px -60% 0px"
+                rootMargin: "-30% 0px -55% 0px",
+                threshold: 0
             }
         );
 
@@ -165,7 +175,15 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     }
 
-    // Contact form: validate and prepare an email
+    // =========================
+    // CONTACT FORM
+    // =========================
+
+    const contactForm = document.getElementById("contact-form");
+    const formStatus = document.getElementById("form-status");
+
+    const recipientEmail = "heroxhonattackz20@gmail.com";
+
     contactForm.addEventListener("submit", (event) => {
         event.preventDefault();
 
@@ -173,34 +191,41 @@ document.addEventListener("DOMContentLoaded", () => {
             return;
         }
 
-        const formData = new FormData(contactForm);
+        const name = document.getElementById("name").value.trim();
+        const senderEmail = document.getElementById("email").value.trim();
+        const subject = document.getElementById("subject").value.trim();
+        const message = document.getElementById("message").value.trim();
 
-        const name = formData.get("name").trim();
-        const email = formData.get("email").trim();
-        const subject = formData.get("subject").trim();
-        const message = formData.get("message").trim();
+        const emailSubject = `[Portfolio Contact] ${subject}`;
 
-        // Replace this with your real email address
-        const recipient = "heroxhonattackz20@gmail.com";
+        const emailBody = [
+            `Name: ${name}`,
+            `Email: ${senderEmail}`,
+            "",
+            "Message:",
+            message
+        ].join("\n");
 
-        const emailSubject = encodeURIComponent(
-            `${subject} — from ${name}`
-        );
-
-        const emailBody = encodeURIComponent(
-            `Name: ${name}\n` +
-            `Email: ${email}\n\n` +
-            `Message:\n${message}`
-        );
-
-        const mailtoLink =
-            `mailto:${recipient}` +
-            `?subject=${emailSubject}` +
-            `&body=${emailBody}`;
+        const mailtoURL =
+            `mailto:${recipientEmail}` +
+            `?subject=${encodeURIComponent(emailSubject)}` +
+            `&body=${encodeURIComponent(emailBody)}`;
 
         formStatus.textContent =
-            "Opening your email app. If nothing opens, check that an email app is configured.";
+            "Opening your email app. Review the message and press Send to email Vern.";
 
-        window.location.href = mailtoLink;
+        // Open the visitor's default email application.
+        window.location.href = mailtoURL;
     });
+
+    // =========================
+    // AUTOMATIC COPYRIGHT YEAR
+    // =========================
+
+    const yearElement = document.getElementById("current-year");
+
+    if (yearElement) {
+        yearElement.textContent = new Date().getFullYear();
+    }
 });
+```
